@@ -1,0 +1,1 @@
+# Caracterizacion-Motor-reductor-para-Reactor-Bacht-
