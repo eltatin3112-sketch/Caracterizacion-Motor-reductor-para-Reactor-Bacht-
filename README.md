@@ -10,7 +10,6 @@ Este repositorio contiene todo lo necesario para reproducir la caracterización 
 
 En la industria, no podemos controlar lo que no conocemos. Por ello, el objetivo de esta práctica es medir cómo responde el motor ante diferentes niveles de potencia (PWM) bajo la resistencia viscosa de 2 Litros de agua. Los datos extraídos permiten identificar no linealidades (como la **Zona Muerta** y la **Saturación**), lo cual es un paso fundamental en *Sistemas de Control II* antes de diseñar un lazo cerrado.
 
-![Foto del montaje](img/foto_montaje.PNG) 
 ---
 
 ### 2. LISTADO DE COMPONENTES UTILIZADOS y Hardware Mínimo Requerido
