@@ -6,26 +6,25 @@ Elaborado por: Daniel Torres y Yermey Castro
 ---
 
 ### 1. OBJETIVO DEL PROYECTO DE CARACTERIZACIÓN
-Este repositorio contiene el firmware, los esquemas de conexión y los datos crudos utilizados para la caracterización dinámica y eléctrica del motorreductor TT de 12V empleado en el agitador de hélice del reactor batch. 
+Este repositorio contiene todo lo necesario para reproducir la caracterización física de un motorreductor DC utilizado como agitador en un Reactor Batch. 
 
-El propósito de esta fase experimental es identificar y modelar el comportamiento estático y dinámico de la etapa de mezcla bajo condiciones reales de carga. A través de este ensayo se busca:
-*   Identificar la relación exacta entre la señal de mando (PWM de 0 a 255) y la velocidad de rotación real (RPM).
-*   Cuantificar las no linealidades críticas del actuador mecánico, tales como la zona muerta por fricción estática y la saturación de voltaje impuesta por el driver de potencia.
-*   Analizar el comportamiento del consumo de corriente de armadura ante variaciones de velocidad y el efecto de la fuerza contraelectromotriz (FCEM).
-*   Validar la inercia del motor y determinar el tiempo de establecimiento mecánico para compararlo con el lazo térmico.
+En la industria, no podemos controlar lo que no conocemos. Por ello, el objetivo de esta práctica es medir cómo responde el motor ante diferentes niveles de potencia (PWM) bajo la resistencia viscosa de 2 Litros de agua. Los datos extraídos permiten identificar no linealidades (como la **Zona Muerta** y la **Saturación**), lo cual es un paso fundamental en *Sistemas de Control II* antes de diseñar un lazo cerrado.
 
+![Foto del montaje real](img/foto_montaje_real.jpg) 
 ---
 
-### 2. LISTADO DE COMPONENTES UTILIZADOS
-Para este ensayo específico de caracterización, se utilizó el siguiente hardware:
+### 2. LISTADO DE COMPONENTES UTILIZADOS y Hardware Mínimo Requerido
+Para reproducir este experimento, se requiere el siguiente hardware. Todos los componentes deben compartir una referencia de tierra común (GND).
 
-*   **Microcontrolador Principal:** ESP32 DevKit V1 (Encargado del conteo de pulsos, cálculo de velocidad y servidor de telemetría).
-*   **Actuador Mecánico:** Motorreductor de corriente continua tipo TT de 12V acoplado a una hélice de alambre galvanizado.
-*   **Driver de Potencia:** Módulo Puente H L298N (Configurado para modulación por ancho de pulso PWM).
-*   **Sensor de Velocidad (Retroalimentación):** Encoder óptico de herradura FC-03 con disco acoplado de 20 ranuras.
-*   **Fuente de Alimentación:** Fuente conmutada tipo ATX de computadora (Riel de 12V para potencia y puerto USB de la laptop para la lógica de 5V).
-*   **Recipiente de Proceso:** Jarra cilíndrica de polímero de 3.5 Litros con una carga de agua estandarizada de 2 Litros (para simular la inercia viscosa real).
-*   **Instrumentación Auxiliar:** Multímetro digital configurado en modo Amperímetro (en serie con el motor) y Voltímetro (en paralelo a los bornes).
+| Componente | Referencia / Modelo | Cantidad | Función en el sistema |
+| :--- | :--- | :--- | :--- |
+| **Microcontrolador** | ESP32 DevKit V1 (30 pines) | 1 | Procesamiento, conteo de interrupciones y servidor Web WiFi. |
+| **Driver de Motor** | Puente H L298N | 1 | Etapa de potencia para suministrar 12V al motor modulados por PWM. |
+| **Actuador** | Motorreductor DC tipo TT | 1 | Agitador mecánico del reactor. |
+| **Sensor (Feedback)**| Encoder Óptico FC-03 | 1 | Lectura de las ranuras del disco para calcular RPM reales. |
+| **Fuente de Poder** | Fuente ATX de PC (Reciclada)| 1 | Suministra 12V estables (Cable amarillo) para la potencia. |
+| **Carga de Trabajo** | Jarra plástica + Agua | 1 | Simula la inercia viscosa con 2 Litros de agua. |
+| **Aspas** | Fabricadas con alambre y aspas de ventiladores de 12V | 2 | 1 Aspa ligera y 1 Aspa pesada para comparar torque resistente. |
 
 ---
 
@@ -49,38 +48,39 @@ ND` (Cable Negro) | **GND COMÚN** | Unión de tierras del sistema en borne L298
 *   **NO** alimentar el sensor FC-03 con los 5V de la fuente ATX o el pin VIN del ESP32. Su salida de señal debe operar estrictamente a 3.3V para proteger las entradas del ESP32.
 *   **OBLIGATORIO:** Conectar físicamente el pin GND del ESP32 con el borne de tierra del L298N para unificar las referencias de las señales lógicas PWM e impedir voltajes flotantes.
 
-*(El diagrama eléctrico detallado en formato .fzz de Fritzing se encuentra dentro de la carpeta `/hardware` de este repositorio).*
+*(El diagrama eléctrico detallado en formato .fzz de Fritzing se encuentra dentro de la carpeta `Diagrama electrico` de este repositorio).*
 
 ---
 
-### 4. ESTRUCTURA DEL PROYECTO (PLATFORMIO)
-El software se encuentra organizado bajo el estándar de PlatformIO en Visual Studio Code. Las dependencias lógicas y los archivos de la interfaz web se distribuyen en las siguientes carpetas:
+### 4. INSTRUCCIONES DE DESARROLLO Y CARGA
+Para un estudiante nuevo, siga estos pasos para ejecutar el proyecto:
 
-*   **platformio.ini:** Archivo de configuración del entorno (board: esp32dev, framework: arduino, librerías y monitor_speed en 115200).
-*   **src/main.cpp:** Código central de la prueba (conteo de pulsos por interrupción, cálculo de RPM y servidor de telemetría asíncrono).
-*   **data/index.html:** Interfaz gráfica del usuario (HMI) diseñada en HTML5.
-*   **data/app.js:** Lógica de telemetría y actualización de gráficas dinámicas en JavaScript.
-*   **data/style.css:** Diseño visual responsivo del panel de control.
-*   **data/chart.umd.min.js:** Librería de gráficas alojada localmente en la flash para funcionamiento sin internet.
-*   **data/xlsx.full.min.js:** Librería de exportación local para Excel.
+### A. Preparación del Entorno
+1. Descargue este repositorio: Puede hacer clic en el botón verde **"Code" -> "Download ZIP"** y descomprimirlo, o clonarlo vía Git:
+   `git clone https://github.com/tu-usuario/tu-repo-motor.git`
+2. Instale **Visual Studio Code (VS Code)**.
+3. Vaya a las extensiones de VS Code e instale **PlatformIO IDE**.
+4. En VS Code, vaya a *File -> Open Folder* y seleccione la carpeta de este proyecto.
 
----
-
-### 5. INSTRUCCIONES DE DESARROLLO Y CARGA
-Siga esta secuencia de comandos en la terminal de VS Code para compilar y subir todo el sistema a la placa ESP32:
-
-1. **Compilar el código fuente:** 
+### B. Compilación y Carga
+*(Nota: Para este proyecto, la página web (HTML/JS) se encuentra embebida directamente en el archivo `main.cpp`, por lo que **no es necesario cargar un sistema de archivos LittleFS**, simplificando el proceso).*
+1. Conecte el ESP32 a su computadora vía USB.
+2. Abra la terminal de PlatformIO en VS Code y compile el proyecto:
    `pio run`
-2. **Subir el Firmware al ESP32:** 
+3. Suba el firmware a la placa:
    `pio run --target upload`
-3. **Subir la Interfaz Web (LittleFS) a la memoria Flash:** 
-   `pio run --target uploadfs`
-4. **Abrir Monitor Serial para diagnóstico:** 
+
+### C. Puesta en Marcha y Monitoreo
+1. Una vez cargado, abra el monitor serial en VS Code:
    `pio device monitor --baud 115200`
+2. Si el sistema arrancó correctamente, verá el mensaje: `"WiFi Access Point 'Reactor_Batch_G5' Iniciado"`.
+3. Desde su teléfono o laptop, busque las redes WiFi y conéctese a **Reactor_Batch_G5** (Contraseña: `control_industrial`).
+4. Abra su navegador web (recomendado modo incógnito) e ingrese a: **`http://192.168.4.1`**.
+5. Verá la interfaz HMI cargada. Deslice el control PWM y observe cómo el motor gira y las RPM se actualizan.
 
 ---
 
-### 6. VALIDACIÓN DE LIBRERÍAS LOCALES (MODO OFFLINE)
+### 5. VALIDACIÓN DE LIBRERÍAS LOCALES (MODO OFFLINE)
 Para garantizar el funcionamiento del banco de pruebas en entornos industriales o laboratorios sin acceso a internet (como los de la UNET), las librerías de visualización y exportación se cargan directamente desde la memoria interna del ESP32 (LittleFS).
 
 Al ingresar a la interfaz en tu navegador (`192.168.4.1`), verifique el estado en la sección de diagnóstico:
@@ -92,7 +92,7 @@ Al ingresar a la interfaz en tu navegador (`192.168.4.1`), verifique el estado e
 
 ---
 
-### 7. PROCEDIMIENTO DEL ENSAYO DE CARACTERIZACIÓN (PASO A PASO)
+### 6. PROCEDIMIENTO DEL ENSAYO DE CARACTERIZACIÓN (PASO A PASO)
 Este protocolo experimental está diseñado para obtener de forma cuantitativa la fricción, zona muerta, voltaje de saturación, velocidad máxima y corriente de armadura bajo la carga viscosa real de 2 Litros de agua utilizando dos diseños de hélice distintos:
 
 #### Etapa 1: Preparación de la Instrumentación de Medición
@@ -115,6 +115,16 @@ Este protocolo experimental está diseñado para obtener de forma cuantitativa l
 2.  Sumergir el agitador nuevamente en la jarra con los 2 Litros de agua.
 3.  Repetir exactamente toda la secuencia de la **Rampa Ascendente y Descendente** (Paso 3 y 4 de la Etapa anterior) anotando las RPM leídas por el encoder, la corriente y el voltaje.
 4.  Descargar el segundo archivo de datos CSV para su análisis comparativo en MATLAB.
+
+---
+
+## ⚠️ 7. Problemas Frecuentes (Troubleshooting)
+
+*   **El ESP32 no aparece en el puerto COM:** Instale los drivers CP210x o CH340 según el modelo de su placa ESP32. Asegúrese de usar un cable USB de transferencia de datos, no solo de carga.
+*   **El motor zumba pero no gira:** El PWM es demasiado bajo (está en la zona muerta) o la fuente ATX no está encendida (recuerde puentear el cable verde con un negro en la fuente ATX para que encienda).
+*   **La página web no carga o se congela:** Desactive los "Datos Móviles" de su teléfono celular mientras está conectado al WiFi del ESP32.
+*   **El encoder FC-03 siempre marca 0 RPM:** Revise que el disco de ranuras no esté rozando la herradura negra del sensor. Verifique que el cable verde de datos esté firmemente conectado al pin D33.
+*   **El firmware no compila (Error de librerías):** Asegúrese de que el archivo `platformio.ini` esté en la raíz del proyecto y contenga las librerías `ESPAsyncWebServer` y `DallasTemperature`.
 
 ---
 
